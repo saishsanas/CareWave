@@ -1,5 +1,9 @@
 <div align="center">
 
+<p align="center">
+<img src="assets/logoCarewave.jpeg" width="170"/>
+</p>
+
 # 🚨 CareWave
 
 ### Mobile-Based Emergency Response & Personal Safety Platform
@@ -30,6 +34,22 @@ This repository serves as a **project showcase**, containing project documentati
 The backend source code is maintained in the shared team repository.
 
 ---
+
+# 📑 Table of Contents
+
+- About
+- Problem Statement
+- Solution
+- Features
+- Technology Stack
+- My Contributions
+- Team
+- Screenshots
+- Architecture
+- Research Publication
+- Documents
+- Future Improvements
+
 
 # 🎯 Problem Statement
 
@@ -117,15 +137,19 @@ As the **Team Leader** and **Backend Developer**, my responsibilities included:
 
 | Login | Home |
 |------|------|
-| ![](screenshots/login.png) | ![](screenshots/home.png) |
+| ![](screenshots/login.jpg) | ![](screenshots/HomeScreen.jpg) |
 
 | SOS | GeoFence |
 |------|------|
-| ![](screenshots/sos.png) | ![](screenshots/geofence.png) |
+| ![](screenshots/Sos.jpg) | ![](screenshots/geofencing.jpg) |
 
 | AI Assistant | Nearby Hospitals |
 |------|------|
-| ![](screenshots/ai-chat.png) | ![](screenshots/nearby-hospital.png) |
+| ![](screenshots/aichatbot.jpg) | ![](screenshots/NearbyHospitalScreen.jpg) |
+
+| Live Location | Alert Activated |
+|------|------|
+| ![](screenshots/livelocationscreen.jpg) | ![](screenshots/HomeScreenWithAlertActivated.jpg) |
 
 ---
 
