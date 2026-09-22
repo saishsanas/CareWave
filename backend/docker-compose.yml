@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  carewave-mysql:
+    image: mysql:8.0
+    container_name: carewave-mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: carewave
+      MYSQL_ROOT_PASSWORD: carewave_root
+      MYSQL_USER: carewave_app
+      MYSQL_PASSWORD: carewave_pass
+    volumes:
+      - carewave-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  carewave-redis:
+    image: redis:7-alpine
+    container_name: carewave-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - carewave-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  carewave-zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: carewave-zookeeper
+    ports:
+      - "2182:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  carewave-kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: carewave-kafka
+    ports:
+      - "9093:9092"
+    depends_on:
+      - carewave-zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: carewave-zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://carewave-kafka:29092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  carewave-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: carewave-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      carewave-mysql:
+        condition: service_healthy
+      carewave-redis:
+        condition: service_healthy
+      carewave-kafka:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://carewave-mysql:3306/carewave?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: carewave_app
+      SPRING_DATASOURCE_PASSWORD: carewave_pass
+      SPRING_DATA_REDIS_HOST: carewave-redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: carewave-kafka:29092
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+volumes:
+  carewave-mysql-data:
+  carewave-redis-data:

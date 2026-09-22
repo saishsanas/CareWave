@@ -1,0 +1,35 @@
+# Compiled & Build Outputs
+target/
+build/
+.gradle/
+node_modules/
+.expo/
+dist/
+*.apk
+*.aab
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+firebase-service-account.json
+*.keystore
+*.jks
+
+# IDE & Editor Settings
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.classpath
+.settings/
+
+# OS / System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/

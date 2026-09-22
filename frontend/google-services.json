@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "474840926722",
+    "project_id": "carewave-f20b1",
+    "storage_bucket": "carewave-f20b1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:474840926722:android:31eaea944bf0e47a74351b",
+        "android_client_info": {
+          "package_name": "com.carewave.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACDt6_GjBV5fM9YUyzQDjp2TL_IfANdig"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
