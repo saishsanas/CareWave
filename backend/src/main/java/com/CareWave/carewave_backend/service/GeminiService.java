@@ -16,7 +16,7 @@ import java.util.Map;
 @Service
 public class GeminiService {
 
-    @Value("${GEMINI_API_KEY:}")
+    @Value("${gemini.api.key:${GEMINI_API_KEY:}}")
     private String geminiApiKey;
 
     private final RestTemplate restTemplate;

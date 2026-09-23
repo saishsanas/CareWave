@@ -14,8 +14,17 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    @Value("${jwt.secret}")
+    @Value("${jwt.secret:}")
     private String secret;
+
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        if (secret == null || secret.isBlank()) {
+            org.slf4j.LoggerFactory.getLogger(JwtService.class)
+                    .warn("[JWT] JWT_SECRET environment variable is empty. Using default development secret key.");
+            secret = "c3VwZXItc2VjcmV0LWtleS1mb3ItY2FyZXdhdmUtZGV2ZWxvcG1lbnQtZW52aXJvbm1lbnQtMjUyNTY=";
+        }
+    }
 
     private Key getSigningKey(){
 

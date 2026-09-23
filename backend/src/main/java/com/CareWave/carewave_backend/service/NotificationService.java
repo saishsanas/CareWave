@@ -124,6 +124,14 @@ public class NotificationService {
         saveToHistory(user, title, body, "SOS_ALERT");
 
         try {
+            if (com.google.firebase.FirebaseApp.getApps().isEmpty()) {
+                log.warn("FirebaseApp not initialized. Skipping FCM push notification.");
+                return;
+            }
+            if (user.getFcmToken() == null || user.getFcmToken().isBlank()) {
+                log.warn("User FCM token missing. Suppressed Medical Emergency Alert.");
+                return;
+            }
             Message message = Message.builder()
                     .setToken(user.getFcmToken())
                     .setNotification(
@@ -139,7 +147,6 @@ public class NotificationService {
             log.info("Notification Sent Successfully: {}", response);
         } catch (Exception e) {
             log.error("Failed To Send Notification: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed To Send Notification", e);
         }
     }
 
@@ -150,6 +157,14 @@ public class NotificationService {
         saveToHistory(user, title, body, "SOS_ALERT");
 
         try {
+            if (com.google.firebase.FirebaseApp.getApps().isEmpty()) {
+                log.warn("FirebaseApp not initialized. Skipping FCM push notification.");
+                return;
+            }
+            if (user.getFcmToken() == null || user.getFcmToken().isBlank()) {
+                log.warn("User FCM token missing. Suppressed Police Emergency Alert.");
+                return;
+            }
             Message message = Message.builder()
                     .setToken(user.getFcmToken())
                     .setNotification(
@@ -166,7 +181,6 @@ public class NotificationService {
             log.info("Police alert notification sent successfully.");
         } catch (Exception e) {
             log.error("Failed To Send Police Alert: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed To Send Police Alert", e);
         }
     }
 
@@ -177,6 +191,14 @@ public class NotificationService {
         saveToHistory(user, title, body, "SOS_ALERT");
 
         try {
+            if (com.google.firebase.FirebaseApp.getApps().isEmpty()) {
+                log.warn("FirebaseApp not initialized. Skipping FCM push notification.");
+                return;
+            }
+            if (user.getFcmToken() == null || user.getFcmToken().isBlank()) {
+                log.warn("User FCM token missing. Suppressed Fire Emergency Alert.");
+                return;
+            }
             Message message = Message.builder()
                     .setToken(user.getFcmToken())
                     .setNotification(
@@ -195,7 +217,6 @@ public class NotificationService {
             log.info("Fire alert notification sent successfully.");
         } catch (Exception e) {
             log.error("Failed To Send Fire Alert: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed To Send Fire Alert", e);
         }
     }
 

@@ -27,8 +27,7 @@ public class EmailService {
             mailSender.send(message);
             log.info("[EMAIL] Send successful");
         } catch (Exception e) {
-            log.error("[EMAIL] Send failed", e);
-            throw new RuntimeException("Failed to send email: " + e.getMessage(), e);
+            log.error("[EMAIL] Send failed (SMTP unconfigured or unreachable): {}", e.getMessage());
         }
     }
 }
