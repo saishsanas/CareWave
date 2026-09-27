@@ -1,6 +1,7 @@
 package com.CareWave.carewave_backend.config;
 
 import com.CareWave.carewave_backend.dto.EmergencyNotificationRequestedEvent;
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -18,10 +19,6 @@ import org.springframework.kafka.core.*;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,9 +52,7 @@ public class KafkaConfig {
     @Value("${spring.kafka.properties.ssl.truststore.password:${SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD:}}")
     private String sslTruststorePassword;
 
-    private File tempCaFile;
-
-    private synchronized void applySecurityProps(Map<String, Object> props) {
+    private void applySecurityProps(Map<String, Object> props) {
         if (securityProtocol != null && !securityProtocol.isBlank()) {
             props.put("security.protocol", securityProtocol.trim());
         }
@@ -72,18 +67,7 @@ public class KafkaConfig {
             String pem = sslTruststoreCertificates.trim().replace("\\n", "\n");
             props.put("ssl.truststore.type", "PEM");
             props.put("ssl.truststore.certificates", pem);
-
-            try {
-                if (tempCaFile == null || !tempCaFile.exists()) {
-                    tempCaFile = File.createTempFile("aiven-kafka-ca-", ".pem");
-                    tempCaFile.deleteOnExit();
-                    Files.writeString(tempCaFile.toPath(), pem, StandardCharsets.UTF_8);
-                }
-                props.put("ssl.truststore.location", tempCaFile.getAbsolutePath());
-                log.info("[KAFKA] Configured PEM truststore with CA certificate (Length: {} bytes)", pem.length());
-            } catch (IOException e) {
-                log.warn("[KAFKA] Could not write temporary CA certificate file: {}", e.getMessage());
-            }
+            log.info("[KAFKA] Configured inline PEM truststore with CA certificate (Length: {} bytes)", pem.length());
         } else {
             if (sslTruststoreType != null && !sslTruststoreType.isBlank()) {
                 props.put("ssl.truststore.type", sslTruststoreType.trim());
@@ -95,6 +79,16 @@ public class KafkaConfig {
                 props.put("ssl.truststore.password", sslTruststorePassword.trim());
             }
         }
+    }
+
+    @Bean
+    public KafkaAdmin kafkaAdmin() {
+        Map<String, Object> configs = new HashMap<>();
+        configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        applySecurityProps(configs);
+        KafkaAdmin admin = new KafkaAdmin(configs);
+        admin.setAutoCreate(false);
+        return admin;
     }
 
     @Bean
