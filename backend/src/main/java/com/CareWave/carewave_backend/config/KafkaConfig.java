@@ -6,6 +6,8 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,12 +18,18 @@ import org.springframework.kafka.core.*;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
 @EnableKafka
 public class KafkaConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(KafkaConfig.class);
 
     @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
@@ -35,7 +43,21 @@ public class KafkaConfig {
     @Value("${spring.kafka.properties.sasl.jaas.config:}")
     private String saslJaasConfig;
 
-    private void applySecurityProps(Map<String, Object> props) {
+    @Value("${spring.kafka.properties.ssl.truststore.type:${SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_TYPE:}}")
+    private String sslTruststoreType;
+
+    @Value("${spring.kafka.properties.ssl.truststore.certificates:${SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_CERTIFICATES:${AIVEN_KAFKA_CA_CERT:}}}")
+    private String sslTruststoreCertificates;
+
+    @Value("${spring.kafka.properties.ssl.truststore.location:${SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_LOCATION:}}")
+    private String sslTruststoreLocation;
+
+    @Value("${spring.kafka.properties.ssl.truststore.password:${SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD:}}")
+    private String sslTruststorePassword;
+
+    private File tempCaFile;
+
+    private synchronized void applySecurityProps(Map<String, Object> props) {
         if (securityProtocol != null && !securityProtocol.isBlank()) {
             props.put("security.protocol", securityProtocol.trim());
         }
@@ -44,6 +66,34 @@ public class KafkaConfig {
         }
         if (saslJaasConfig != null && !saslJaasConfig.isBlank()) {
             props.put("sasl.jaas.config", saslJaasConfig.trim());
+        }
+
+        if (sslTruststoreCertificates != null && !sslTruststoreCertificates.isBlank()) {
+            String pem = sslTruststoreCertificates.trim().replace("\\n", "\n");
+            props.put("ssl.truststore.type", "PEM");
+            props.put("ssl.truststore.certificates", pem);
+
+            try {
+                if (tempCaFile == null || !tempCaFile.exists()) {
+                    tempCaFile = File.createTempFile("aiven-kafka-ca-", ".pem");
+                    tempCaFile.deleteOnExit();
+                    Files.writeString(tempCaFile.toPath(), pem, StandardCharsets.UTF_8);
+                }
+                props.put("ssl.truststore.location", tempCaFile.getAbsolutePath());
+                log.info("[KAFKA] Configured PEM truststore with CA certificate (Length: {} bytes)", pem.length());
+            } catch (IOException e) {
+                log.warn("[KAFKA] Could not write temporary CA certificate file: {}", e.getMessage());
+            }
+        } else {
+            if (sslTruststoreType != null && !sslTruststoreType.isBlank()) {
+                props.put("ssl.truststore.type", sslTruststoreType.trim());
+            }
+            if (sslTruststoreLocation != null && !sslTruststoreLocation.isBlank()) {
+                props.put("ssl.truststore.location", sslTruststoreLocation.trim());
+            }
+            if (sslTruststorePassword != null && !sslTruststorePassword.isBlank()) {
+                props.put("ssl.truststore.password", sslTruststorePassword.trim());
+            }
         }
     }
 
