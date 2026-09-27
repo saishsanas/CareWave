@@ -20,7 +20,7 @@ public class FirebaseConfig {
     @Value("${firebase.config.path:${FIREBASE_CONFIG_PATH:${GOOGLE_APPLICATION_CREDENTIALS:}}}")
     private String configPath;
 
-    @Value("${firebase.credentials.json:${FIREBASE_CREDENTIALS_JSON:}}")
+    @Value("${firebase.credentials.json:${FIREBASE_CREDENTIALS_JSON:${FIREBASE_ADMIN_CREDENTIALS:}}}")
     private String credentialsJson;
 
     @PostConstruct
@@ -56,15 +56,21 @@ public class FirebaseConfig {
                     }
                 }
             } else {
-                // Fallback 1: Classpath resource
-                InputStream classPathStream = getClass().getClassLoader().getResourceAsStream("firebase-service-account.json");
-                if (classPathStream != null) {
-                    credentialsStream = classPathStream;
+                // Fallback 1: Local root directory file (e.g. firebase-service-account.json in project root)
+                File rootFile = new File("firebase-service-account.json");
+                if (rootFile.exists()) {
+                    credentialsStream = new FileInputStream(rootFile);
                 } else {
-                    // Fallback 2: Local development file path
-                    File localFile = new File("src/main/resources/firebase-service-account.json");
-                    if (localFile.exists()) {
-                        credentialsStream = new FileInputStream(localFile);
+                    // Fallback 2: Classpath resource
+                    InputStream classPathStream = getClass().getClassLoader().getResourceAsStream("firebase-service-account.json");
+                    if (classPathStream != null) {
+                        credentialsStream = classPathStream;
+                    } else {
+                        // Fallback 3: Local src/main/resources file
+                        File localFile = new File("src/main/resources/firebase-service-account.json");
+                        if (localFile.exists()) {
+                            credentialsStream = new FileInputStream(localFile);
+                        }
                     }
                 }
             }
@@ -85,7 +91,7 @@ public class FirebaseConfig {
             if (explicitlyConfigured) {
                 throw new IllegalStateException("Failed to initialize Firebase with explicitly configured credentials", e);
             }
-            throw new RuntimeException("Failed to initialize Firebase with available credentials", e);
+            System.err.println("WARNING: Firebase initialization failed with unconfigured credentials: " + e.getMessage());
         } finally {
             if (credentialsStream != null) {
                 try {
