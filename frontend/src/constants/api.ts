@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 
-const DEFAULT_PRODUCTION_URL = "https://carewave-backend-m2fl.onrender.com";
+const DEFAULT_PRODUCTION_URL = "https://carewave-backend-m2f1.onrender.com";
+
 
 const DEFAULT_LOCAL_URL =
   Platform.OS === "android"
