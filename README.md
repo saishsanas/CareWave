@@ -6,7 +6,7 @@
 
 # CareWave — Emergency Alert & Real-Time Public Safety System
 
-> **Enterprise-Grade Distributed Emergency Dispatch, Live Telemetry & Disaster Alert Platform**  
+> **Real-Time Emergency Dispatch, Live Telemetry & Disaster Safety Platform**  
 > **Repository:** [https://github.com/saishsanas/CareWave](https://github.com/saishsanas/CareWave)  
 > **Production API:** `https://carewave-backend-m2f1.onrender.com`  
 > **Release Target:** Android Standalone Application (`com.carewave.app`)
@@ -61,19 +61,19 @@ During critical personal emergencies, accidents, medical crises, and natural dis
 
 ## 2. Solution Overview
 
-**CareWave** is an end-to-end emergency response platform combining an event-driven **Spring Boot 3.5.13** microservices backend with a cross-platform **React Native (Expo SDK 54)** mobile application. 
+**CareWave** is an emergency response platform combining an event-driven **Spring Boot 3.5.13** backend service with a cross-platform **React Native (Expo SDK 54)** mobile application. 
 
-The platform guarantees sub-second emergency dispatch by decoupling HTTP client requests from push/email notifications through **Apache Kafka** event streaming. Active tracking sessions maintain ultra-low latency location broadcasts over **STOMP WebSockets** backed by in-memory **Redis/Valkey** caching, while authoritative audit trails and relationships are safely persisted in **MySQL**.
+The platform decouples client requests from alert notifications using an **Apache Kafka** event streaming pipeline. Active tracking sessions stream location coordinates over **STOMP WebSockets** with in-memory **Redis/Valkey** caching, while authoritative records are safely persisted in **MySQL**.
 
 ---
 
 ## 3. Key Features
 
 - **🔐 Dual-Factor Passwordless Authentication:** Phone-first identity registration combined with time-sensitive email One-Time Passwords (OTP) and signed JSON Web Tokens (JWT).
-- **📧 High-Reliability Email OTP:** Sub-second transactional OTP delivery via Resend HTTPS REST API, isolated from SMTP port blocking and throttled by sliding-window rate limiters.
+- **📧 Reliable Email OTP:** Transactional OTP delivery via Resend HTTPS REST API, isolated from SMTP port blocking and throttled by sliding-window rate limiters.
 - **📍 High-Accuracy Geolocation:** Native GPS coordinate acquisition (`expo-location`) with continuous tracking and telemetry transmission.
 - **🚨 Instant Multi-Category SOS:** One-tap emergency triggers tailored to specific incident classes: Police, Medical, Fire, and General Emergency.
-- **⚡ Decoupled Event Processing:** Non-blocking emergency dispatch powered by an Apache Kafka message broker ensuring zero request thread contention.
+- **⚡ Decoupled Event Processing:** Asynchronous emergency event dispatch powered by an Apache Kafka message broker.
 - **🔄 STOMP over WebSocket Real-Time Streaming:** Bi-directional telemetry synchronization streaming moving user coordinates to designated responders and family members.
 - **🔔 Multi-Channel Alert Fan-Out:** Synchronized delivery across Firebase Cloud Messaging (FCM) high-priority push notifications and transactional emergency emails.
 - **🛡️ Geofencing & Safe Zones:** Real-time boundary monitoring that alerts designated contacts immediately upon boundary breaches.
@@ -84,7 +84,7 @@ The platform guarantees sub-second emergency dispatch by decoupling HTTP client 
 
 ## 4. System Architecture
 
-The architecture enforces a strict separation of concerns, ensuring high availability, fault tolerance, and minimal response latency:
+The architecture separates concerns across client, service, event, and persistence layers:
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -97,7 +97,7 @@ The architecture enforces a strict separation of concerns, ensuring high availab
            |                                                      |
            v                                                      v
 +-----------------------------------------------------------------------------------+
-|                    Spring Boot 3.5.13 Enterprise Backend                          |
+|                         Spring Boot 3.5.13 Backend                                |
 |                         Java 21 / Spring Security 6                               |
 |                                                                                   |
 |  [Security Filter Chain]  --->  [Sliding Window Rate Limiter]                     |
@@ -194,7 +194,7 @@ sequenceDiagram
 
 ## 7. SOS & Emergency Event Lifecycle
 
-When an emergency occurs, the platform executes a fail-safe, rapid response sequence:
+When an emergency occurs, the platform executes a structured response sequence:
 
 ```mermaid
 stateDiagram-v2
@@ -224,7 +224,7 @@ stateDiagram-v2
 
 ## 8. Kafka Asynchronous Event Pipeline
 
-To ensure the mobile client receives an immediate `HTTP 200` response without waiting for external third-party network calls, all notification side-effects are decoupled using **Apache Kafka**:
+Notification dispatch and alert side-effects are decoupled using **Apache Kafka** so the client request thread does not block on external network calls:
 
 - **Kafka Topic:** `carewave-emergency-events`
 - **Dynamic Provisioning:** Managed by `KafkaAdmin` with automatic partition and replica discovery.
@@ -245,7 +245,7 @@ Continuous tracking utilizes STOMP protocol over secure WebSockets (`/ws`):
 - **Handshake & Protocol:** Upgrades HTTP/HTTPS to WSS connection with fallback transports.
 - **Inbound Destination:** `/app/track/send` — Client transmits device telemetry packets `{ sessionId, latitude, longitude, speed, heading, timestamp }`.
 - **Outbound Broker Destination:** `/topic/tracking/{sessionId}` — Broadcasts real-time delta markers to all authenticated contacts viewing the live map.
-- **High-Velocity Cache:** Telemetry coordinates are written to **Redis/Valkey** with sub-5ms latency, avoiding high-frequency database write bottlenecks.
+- **In-Memory Cache:** Telemetry coordinates are cached in **Redis/Valkey** for fast subscriber access without high-frequency database writes.
 - **Batch Synchronization:** Periodic background workers flush verified tracking points into MySQL `LiveTrackingSession` for post-incident audits and report generation.
 
 ---
@@ -266,7 +266,7 @@ CareWave employs a dual-tier persistence layer: **MySQL 8.0** for durable relati
 
 ### In-Memory Storage (Redis / Valkey)
 - `otp:{email}`: 6-digit numeric OTP with an aggressive 300-second TTL.
-- `tracking:{sessionId}`: Latest geographic coordinate cache for zero-latency subscriber reads.
+- `tracking:{sessionId}`: Latest geographic coordinate cache for responsive subscriber reads.
 - `ratelimit:{ip}`: Sliding-window request counter enforcing protection against brute-force attacks.
 
 ---
@@ -278,7 +278,7 @@ CareWave employs a dual-tier persistence layer: **MySQL 8.0** for durable relati
 | **Render** | Backend Cloud Hosting | Dockerized Spring Boot Web Service | Active (`carewave-backend-m2f1.onrender.com`) |
 | **Aiven** | Managed Cloud Kafka & Redis | SASL_SSL / TLS over TCP | Active & Connected |
 | **Firebase (Google)** | Cloud Messaging (FCM) | Firebase Admin SDK (Project `carewave-3705f`) | Configured & Operational |
-| **Resend** | Transactional Email Delivery | HTTPS REST API (`api.resend.com/emails`) | Verified (Sub-second delivery) |
+| **Resend** | Transactional Email Delivery | HTTPS REST API (`api.resend.com/emails`) | Verified (Operational) |
 | **Google Gemini API** | AI Emergency Guidance | HTTPS REST API | Integrated in AI Assistant |
 | **USGS Earthquake API**| Real-Time Seismic Ingestion | GeoJSON REST Polling Scheduler | Scheduled Task Active |
 | **Open-Meteo API** | Severe Weather Alerts | REST Geocoded Forecast API | Scheduled Task Active |
@@ -501,8 +501,8 @@ CareWave was developed as a Final-Year Bachelor of Engineering (B.E.) Capstone P
 
 ### **My Architectural & Technical Contributions (Saish Sanas)**
 - **System Architecture & Leadership:** Designed and directed the end-to-end event-driven architecture, led the engineering team, established Git workflows, and managed sprint delivery.
-- **Backend Microservices Engineering:** Implemented the core Spring Boot 3.5.13 application, REST controllers, Spring Security authentication filters, and sliding-window rate limiters.
-- **Asynchronous Kafka Event Pipeline:** Architected the decoupled emergency event publish/subscribe pipeline (`carewave-emergency-events`) ensuring sub-second response times.
+- **Backend Service Engineering:** Implemented the core Spring Boot 3.5.13 application, REST controllers, Spring Security authentication filters, and sliding-window rate limiters.
+- **Asynchronous Kafka Event Pipeline:** Architected the decoupled emergency event publish/subscribe pipeline (`carewave-emergency-events`) enabling asynchronous notification delivery without blocking emergency response threads.
 - **Real-Time Telemetry & Caching:** Built the STOMP WebSocket location broadcasting service backed by in-memory Redis/Valkey session caching.
 - **Third-Party Integrations:** Integrated Resend HTTPS API for resilient email OTP delivery, Firebase FCM Admin SDK for push notifications, and Gemini AI for emergency assistance.
 - **Cloud Deployment & Android Release Engineering:** Containerized and deployed the backend on Render with Aiven Kafka/Valkey, optimized native Gradle/Hermes release compilation, and conducted the final production release verification.
