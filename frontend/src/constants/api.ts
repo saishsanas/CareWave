@@ -1,5 +1,7 @@
 import { Platform } from "react-native";
 
+const DEFAULT_PRODUCTION_URL = "https://carewave-backend-m2fl.onrender.com";
+
 const DEFAULT_LOCAL_URL =
   Platform.OS === "android"
     ? "http://10.0.2.2:8080"
@@ -9,7 +11,8 @@ export const BACKEND_API_URL =
   process.env.EXPO_PUBLIC_API_URL ||
   process.env.EXPO_PUBLIC_BACKEND_URL ||
   process.env.EXPO_PUBLIC_BACKEND_API_URL ||
-  DEFAULT_LOCAL_URL;
+  (__DEV__ ? DEFAULT_LOCAL_URL : DEFAULT_PRODUCTION_URL);
+
 
 const DEFAULT_LOCAL_WS_URL =
   Platform.OS === "android"

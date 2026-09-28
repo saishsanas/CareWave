@@ -21,7 +21,7 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Copy built JAR artifact from builder
-COPY --from=builder /app/target/*.jar app.jar
+COPY --from=builder /app/target/carewave-backend-*.jar app.jar
 
 # Render dynamic PORT support (defaults to 8080)
 EXPOSE 8080
