@@ -7,14 +7,22 @@ node_modules/
 dist/
 *.apk
 *.aab
+.cxx/
+android/
+ios/
 
-# Environment & Secrets
+# Environment, Secrets & Local Configs
 .env
 .env.*
 !.env.example
 firebase-service-account.json
+local.properties
+*.local
 *.keystore
 *.jks
+*.p12
+*.pem
+*.key
 
 # IDE & Editor Settings
 .idea/
@@ -30,6 +38,9 @@ firebase-service-account.json
 Thumbs.db
 desktop.ini
 
-# Logs
+# Logs & Temporary Artifacts
 *.log
 logs/
+scratch/
+tmp/
+*.tmp
