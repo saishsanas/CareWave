@@ -26,13 +26,24 @@ public class JwtService {
         }
     }
 
-    private Key getSigningKey(){
-
-        byte[] keyBytes =
-                Decoders.BASE64.decode(secret);
-
+    private Key getSigningKey() {
+        byte[] keyBytes;
+        try {
+            keyBytes = Decoders.BASE64.decode(secret);
+            if (keyBytes.length < 32) {
+                keyBytes = secret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            }
+        } catch (Exception e) {
+            keyBytes = secret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        }
+        if (keyBytes.length < 32) {
+            byte[] padded = new byte[32];
+            System.arraycopy(keyBytes, 0, padded, 0, Math.min(keyBytes.length, 32));
+            keyBytes = padded;
+        }
         return Keys.hmacShaKeyFor(keyBytes);
     }
+
 
     public String generateToken(String userIdentifier){
 
