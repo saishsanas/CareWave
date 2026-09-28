@@ -52,6 +52,9 @@ public class KafkaConfig {
     @Value("${spring.kafka.properties.ssl.truststore.password:${SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD:}}")
     private String sslTruststorePassword;
 
+    @Value("${spring.kafka.admin.auto-create:${SPRING_KAFKA_ADMIN_AUTO_CREATE:true}}")
+    private boolean adminAutoCreate;
+
     private void applySecurityProps(Map<String, Object> props) {
         if (securityProtocol != null && !securityProtocol.isBlank()) {
             props.put("security.protocol", securityProtocol.trim());
@@ -87,7 +90,7 @@ public class KafkaConfig {
         configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         applySecurityProps(configs);
         KafkaAdmin admin = new KafkaAdmin(configs);
-        admin.setAutoCreate(false);
+        admin.setAutoCreate(adminAutoCreate);
         return admin;
     }
 
